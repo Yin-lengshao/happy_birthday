@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日贺卡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes move-twink-back {
+            from {background-position: 0 0;}
+            to {background-position: -10000px 5000px;}
+        }
+
+        @keyframes move-clouds-back {
+            from {background-position: 0 0;}
+            to {background-position: 10000px 0;}
+        }
+
+        .stars, .twinkling, .clouds {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .stars {
+            background: #000 url(http://www.script-tutorials.com/demos/360/images/stars.png) repeat top center;
+            z-index: -3;
+        }
+
+        .twinkling {
+            background: transparent url(http://www.script-tutorials.com/demos/360/images/twinkling.png) repeat top center;
+            z-index: -2;
+            animation: move-twink-back 200s linear infinite;
+        }
+
+        .clouds {
+            background: transparent url(http://www.script-tutorials.com/demos/360/images/clouds3.png) repeat top center;
+            z-index: -1;
+            animation: move-clouds-back 200s linear infinite;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96e6a1);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        .glass-card {
+            position: relative;
+            width: 80%;
+            max-width: 600px;
+            min-height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 0 80px rgba(255, 255, 255, 0.2);
+            transform-style: preserve-3d;
+            transform: rotateX(5deg) rotateY(5deg);
+            transition: transform 0.5s ease;
+        }
+
+        .glow-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            pointer-events: none;
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 50px rgba(255, 255, 255, 0.5); }
+            100% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.3); }
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .text-glitch {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 
+                2px 2px 0 #ff0080,
+                -2px -2px 0 #00ff80;
+            animation: glitch 1s infinite;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        @keyframes glitch {
+            2%, 64% { transform: translate(2px, 0) skew(0deg); }
+            4%, 60% { transform: translate(-2px, 0) skew(0deg); }
+            62% { transform: translate(0, 0) skew(5deg); }
+        }
+
+        .enter-btn {
+            position: relative;
+            padding: 1.5rem 3rem;
+            font-size: 1.2rem;
+            background: transparent;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .enter-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .liquid {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.3);
+            transform-origin: 50% 50%;
+            transition: transform 0.5s ease;
+            animation: liquid 5s infinite;
+        }
+
+        @keyframes liquid {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .floating-shapes div {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            animation: floatShape 15s linear infinite;
+        }
+
+        @keyframes floatShape {
+            0% {
+                transform: scale(0) translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1.5) translateY(-150px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+        #audioControl {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#audioControl:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+        @media (max-width: 768px) {
+            .glass-card {
+                width: 90%;
+                min-height: 300px;
+            }
+
+            .text-glitch {
+                font-size: 2.5rem;
+            }
+
+            .enter-btn {
+                padding: 1.2rem 2.4rem;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .glass-card {
+                width: 95%;
+                min-height: 250px;
+            }
+
+            .text-glitch {
+                font-size: 2rem;
+            }
+
+            .enter-btn {
+                padding: 1rem 2rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="stars"></div>
+<div class="twinkling"></div>
+<div class="clouds"></div>
+
+<button id="audioControl">🔊</button>
+<audio id="bgMusic" loop>
+    <source src="ddd.mp3" type="audio/mp3">
+</audio>
+    <div class="twinkling"></div>
+    <div class="clouds"></div>
+    
+    <div class="container">
+        <div class="glass-card">
+            <div class="bubbles"></div>
+            <div class="floating-shapes"></div>
+            <div class="glow-effect"></div>
+            <div class="content">
+                <div class="text-glitch" data-text="生日快乐">生日快乐</div>
+                <button class="enter-btn" onclick="window.location.href='time_capsule.html'">
+                    <span>点击进入时光机</span>
+                    <div class="liquid"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+    <canvas id="particleCanvas"></canvas>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            createBubbles();
+            initMouseMove();
+            createFloatingShapes();
+            initParticleSystem();
+        });
+
+        function createBubbles() {
+            const bubblesContainer = document.querySelector('.bubbles');
+            const bubbleCount = 15;
+
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.cssText = `
+                    position: absolute;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 50%;
+                    pointer-events: none;
+                    width: ${Math.random() * 100 + 50}px;
+                    height: ${Math.random() * 100 + 50}px;
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    animation: float ${Math.random() * 10 + 5}s linear infinite;
+                `;
+                bubblesContainer.appendChild(bubble);
+            }
+        }
+
+        function createFloatingShapes() {
+            const shapes = document.querySelector('.floating-shapes');
+            const shapeCount = 20;
+            const shapeTypes = ['circle', 'triangle', 'square'];
+
+            for (let i = 0; i < shapeCount; i++) {
+                const shape = document.createElement('div');
+                const randomShape = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+                
+                shape.style.cssText = `
+                    left: ${Math.random() * 100}%;
+                    animation-delay: ${Math.random() * 5}s;
+                    animation-duration: ${Math.random() * 10 + 5}s;
+                `;
+
+                if (randomShape === 'triangle') {
+                    shape.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+                } else if (randomShape === 'square') {
+                    shape.style.borderRadius = '0';
+                }
+
+                shapes.appendChild(shape);
+            }
+        }
+
+        function initMouseMove() {
+            const card = document.querySelector('.glass-card');
+            const container = document.querySelector('.container');
+
+            container.addEventListener('mousemove', (e) => {
+                const rect = container.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateY = ((x - centerX) / centerX) * 5;
+                const rotateX = ((y - centerY) / centerY) * 5;
+
+                card.style.transform = `rotateX(${-rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+
+            container.addEventListener('mouseleave', () => {
+                card.style.transform = 'rotateX(5deg) rotateY(5deg)';
+            });
+        }
+
+        function initParticleSystem() {
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const particleCount = 100;
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 5 + 1;
+                    this.speedX = Math.random() * 3 - 1.5;
+                    this.speedY = Math.random() * 3 - 1.5;
+                    this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+                }
+
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+
+                    if (this.size > 0.2) this.size -= 0.1;
+
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function init() {
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((particle, index) => {
+                    particle.update();
+                    particle.draw();
+                    if (particle.size <= 0.2) {
+                        particles.splice(index, 1);
+                        particles.push(new Particle());
+                    }
+                });
+                requestAnimationFrame(animate);
+            }
+
+            init();
+            animate();
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+
+        // 添加浮动动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0% {
+                    transform: translateY(0) translateX(0);
+                }
+                25% {
+                    transform: translateY(-20px) translateX(10px);
+                }
+                50% {
+                    transform: translateY(0) translateX(20px);
+                }
+                75% {
+                    transform: translateY(20px) translateX(10px);
+                }
+                100% {
+                    transform: translateY(0) translateX(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        document.addEventListener('DOMContentLoaded', function() {
+    createBubbles();
+    initMouseMove();
+    createFloatingShapes();
+    initParticleSystem();
+    initAudio(); // 添加这行
+});
+
+// 添加音频控制函数
+function initAudio() {
+    const audio = document.getElementById('bgMusic');
+    const control = document.getElementById('audioControl');
+    
+    // 设置初始音量
+    audio.volume = 0.5;
+
+    // 尝试自动播放
+    audio.play().catch(() => {
+        control.textContent = '🔇';
+    });
+
+    // 点击控制按钮切换播放状态
+    control.addEventListener('click', () => {
+        if (audio.paused) {
+            audio.play();
+            control.textContent = '🔊';
+        } else {
+            audio.pause();
+            control.textContent = '🔇';
+        }
+    });
+
+    // 添加音频加载错误处理
+    audio.addEventListener('error', () => {
+        console.log('音频加载失败');
+        control.style.display = 'none';
+    });
+}
+    </script>
+</body>
+</html>

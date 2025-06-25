@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日密语</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #0a192f, #20314f, #2a4858, #112240);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease;
+        }
+
+        .big-characters {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .char {
+            font-size: 4em;
+            opacity: 0;
+            transform: translateY(50px);
+            animation: charAppear 0.5s forwards;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes charAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .danmaku {
+            position: absolute;
+            white-space: nowrap;
+            font-size: 24px;
+            color: white;
+            animation: danmakuMove 8s linear;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            z-index: 50;
+        }
+
+        @keyframes danmakuMove {
+            from { transform: translateX(100vw); }
+            to { transform: translateX(-100%); }
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            padding: 15px 0;
+            transition: transform 0.5s ease;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .content-section {
+            min-height: 100vh;
+            padding: 100px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease;
+        }
+
+        .content-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-title {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .section-content {
+            font-size: 1.2em;
+            line-height: 1.8;
+        }
+
+        .section-content p {
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #audioControl {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        #audioControl:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .home-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            font-size: 1em;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @media (max-width: 768px) {
+            .char {
+                font-size: 2.5em;
+            }
+
+            .nav-links {
+                gap: 15px;
+                font-size: 0.9em;
+            }
+
+            .section-title {
+                font-size: 2em;
+            }
+
+            .section-content {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-screen">
+        <div class="big-characters">
+            <span class="char" style="animation-delay: 0.1s">祝</span>
+            <span class="char" style="animation-delay: 0.2s">闫</span>
+            <span class="char" style="animation-delay: 0.3s">世</span>
+            <span class="char" style="animation-delay: 0.4s">静</span>
+            <span class="char" style="animation-delay: 0.5s">生</span>
+            <span class="char" style="animation-delay: 0.6s">日</span>
+            <span class="char" style="animation-delay: 0.7s">快</span>
+            <span class="char" style="animation-delay: 0.8s">乐</span>
+        </div>
+    </div>
+
+    <nav>
+        <ul class="nav-links">
+            <li><a href="#part1">好久不见</a></li>
+            <li><a href="#part2">我们</a></li>
+            <li><a href="#part3">青春的岁月</a></li>
+            <li><a href="#part4">光明的未来</a></li>
+        </ul>
+    </nav>
+
+    <button id="audioControl">🔊</button>
+    <audio id="bgMusic" loop>
+        <source src="srrklg&wdhxd.mp3" type="audio/mp3">
+    </audio>
+
+    <a href="index.html" class="home-btn">
+        <span>⬅️</span>
+        <span>返回首页</span>
+    </a>
+
+    <canvas class="particles"></canvas>
+
+    <section id="part1" class="content-section">
+        <h2 class="section-title">好久不见</h2>
+        <div class="section-content">
+            <p>闫世静，生日快乐啊！！！</p>
+            <p>好久不见了，寒假的时候你在实习嘛，都没来得及见一面。 一切都还顺利吧？</p>
+            <p>这次，可能我有点任性了吧。但是我真的想和你们多见几面。毕竟，马上要毕业，之后的日子里，我们这些相识了十年的好朋友，又能见几面呢？</p>
+            <p>所以今天，我想我要见你们。哪怕不久之后还能再见。</p>
+        </div>
+    </section>
+
+    <section id="part2" class="content-section">
+        <h2 class="section-title">我们</h2>
+        <div class="section-content">
+            <p>有人说一个人变年轻最好的方式不是去美容健身什么的。而是去找你那个时期的好朋友。</p>
+            <p>感官会一下子被抽离到那个时候。</p>
+            <p>我不再是一事无成的计科混子，不是浑浑噩噩的农大学生。好像我又回到了11班，好像我从未远离。</p>
+            <p>见到你们时，我总是会想到那件浅蓝色的夏季校服，教室窗外的客机快要降落时发出的轰鸣，和周日下午拥堵的黄陵。</p>
+            <p>年轻时的朋友，是彼此青春的收藏家。</p>
+            <p>原谅我的刻舟求剑吧。可希望你们还记得我曾经有过的意气风发，纵使我早已不复当年。我也永远不会让那个活泼而有趣的姑娘在我的记忆里褪色。</p>
+        </div>
+    </section>
+
+    <section id="part3" class="content-section">
+        <h2 class="section-title">青春的岁月</h2>
+        <div class="section-content">
+            <p>我的生日赶的不巧，在中学的时候总是在期中考试前后。上了大学以后，每个生日时我总是在想："很不幸，时间的流逝永远无法停止。时光如梭，我的过去在不停增多，我的未来在不断减少。未知的可能性将越来越少，而无法改变的后悔将堆积成山。我意识到这些，却又只能忽略掉这些。"</p>
+            <p>可是一想到明天要去庆祝你的生日，我真的完全想不到这些。我真心的为你祝福。</p>
+            <p>"青春不是年华，而是心境；青春不是桃面、丹唇、柔膝，而是深沉的意志，恢宏的想象，炙热的情感；青春是生命的深泉在涌流。</p>
+            <p>青春气贯长虹，勇锐盖过怯弱，进取压倒苟安。</p>
+            <p>……</p>
+            <p>年岁有加，并非垂老；理想丢弃，方堕暮年。"</p>
+        </div>
+    </section>
+
+    <section id="part4" class="content-section">
+        <h2 class="section-title">光明的未来</h2>
+        <div class="section-content">
+            <p>所以，世静，生日快乐！</p>
+            <p>当蜡烛亮起，光映在你脸上时，我知道那光芒里跳动的，绝不仅仅是又一圈年轮的刻度。它是我们共同拥有的、那场名为"青春"的盛大火焰，在此刻的一次清晰折射。</p>
+            <p>我们围坐在一起，那些关于未来的迷茫、关于远方的疏离，关于蹉跎的年华，被这样的微光驱离。真好，我们又短暂地成为了那个"我们"——一如十年之前，用尚未被世事磨钝的触角，感知着彼此的存在。</p>
+            <p>所以，别忘了我啊。</p>
+            <p>世静，我不知道未来会不会好，但我坚信你会继续幸福、继续快乐。</p>
+            <p>愿你前路珍重，也愿我们来日方长。</p>
+        </div>
+    </section>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initAudio();
+            createParticles();
+            createDanmaku();
+            initScrollEffects();
+
+            // 5秒后隐藏欢迎屏幕
+            setTimeout(() => {
+                const welcomeScreen = document.querySelector('.welcome-screen');
+                welcomeScreen.style.opacity = '0';
+                setTimeout(() => {
+                    welcomeScreen.style.display = 'none';
+                    document.querySelector('nav').classList.add('visible');
+                }, 1000);
+            }, 5000);
+        });
+
+        function initAudio() {
+            const audio = document.getElementById('bgMusic');
+            const control = document.getElementById('audioControl');
+            
+            audio.volume = 0.5;
+            audio.play().catch(() => {});
+
+            control.addEventListener('click', () => {
+                if (audio.paused) {
+                    audio.play();
+                    control.textContent = '🔊';
+                } else {
+                    audio.pause();
+                    control.textContent = '🔇';
+                }
+            });
+        }
+
+        function createDanmaku() {
+            const messages = [
+                "生日快乐！", "Happy Birthday!", "愿你永远快乐！",
+                "祝你心想事成！", "愿你梦想成真！", "前程似锦！",
+                "岁岁平安！", "年年有余！"
+            ];
+
+            let isWelcomeScreenVisible = true;
+
+            function createSingleDanmaku() {
+                if (document.querySelector('.welcome-screen').style.display === 'none') {
+                    const danmaku = document.createElement('div');
+                    danmaku.className = 'danmaku';
+                    danmaku.textContent = messages[Math.floor(Math.random() * messages.length)];
+                    
+                    // 随机位置
+                    danmaku.style.top = `${Math.random() * 70 + 15}vh`;
+                    
+                    // 随机颜色
+                    const hue = Math.random() * 360;
+                    danmaku.style.color = `hsl(${hue}, 80%, 80%)`;
+                    
+                    document.body.appendChild(danmaku);
+
+                    danmaku.addEventListener('animationend', () => {
+                        danmaku.remove();
+                    });
+                }
+            }
+
+            // 每700ms创建一个弹幕
+            setInterval(createSingleDanmaku, 700);
+        }
+
+        function createParticles() {
+            const canvas = document.querySelector('.particles');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const particleCount = 100;
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 3 + 1;
+                    this.speedX = Math.random() * 3 - 1.5;
+                    this.speedY = Math.random() * 3 - 1.5;
+                    this.color = `hsla(${Math.random() * 360}, 50%, 80%, 0.8)`;
+                }
+
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function init() {
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+                requestAnimationFrame(animate);
+            }
+
+            init();
+            animate();
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+
+        function initScrollEffects() {
+            const sections = document.querySelectorAll('.content-section');
+            const navLinks = document.querySelectorAll('.nav-links a');
+
+            // 平滑滚动
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href');
+                    const targetSection = document.querySelector(targetId);
+                    targetSection.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+
+            // 滚动监听
+            const observerOptions = {
+                threshold: 0.2
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        
+                        // 更新导航栏活动状态
+                        const currentId = entry.target.id;
+                        navLinks.forEach(link => {
+                            if (link.getAttribute('href') === `#${currentId}`) {
+                                link.classList.add('active');
+                            } else {
+                                link.classList.remove('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        }
+
+        // 添加鼠标移动特效
+        document.addEventListener('mousemove', function(e) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkles';
+            sparkle.style.left = e.pageX + 'px';
+            sparkle.style.top = e.pageY + 'px';
+            
+            // 随机颜色
+            const hue = Math.random() * 360;
+            sparkle.style.background = `hsl(${hue}, 50%, 50%)`;
+            sparkle.style.boxShadow = `0 0 10px hsl(${hue}, 50%, 50%)`;
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => {
+                sparkle.remove();
+            }, 1500);
+        });
+
+        // 添加触摸设备支持
+        document.addEventListener('touchmove', function(e) {
+            const touch = e.touches[0];
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkles';
+            sparkle.style.left = touch.pageX + 'px';
+            sparkle.style.top = touch.pageY + 'px';
+            
+            const hue = Math.random() * 360;
+            sparkle.style.background = `hsl(${hue}, 50%, 50%)`;
+            sparkle.style.boxShadow = `0 0 10px hsl(${hue}, 50%, 50%)`;
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => {
+                sparkle.remove();
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
